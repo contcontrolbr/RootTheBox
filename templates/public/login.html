@@ -9,6 +9,7 @@
 
 {% block content %}
 <div class="container">
+    {% if options.auth != "keycloak" %}
     <form class="form-signin" action="/login" method="post">
         <h3 class="form-signin-heading">
             <i class="fa fa-lock"></i>
@@ -47,6 +48,7 @@
         <a href="/reset" style="float: right;">{{ _('Forgot Password') }}</a>
         {% end %}
     </form>
+    {% end %}
 </div> <!-- /container -->
 <br />
 {% end %}

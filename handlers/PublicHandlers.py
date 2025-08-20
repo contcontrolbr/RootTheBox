@@ -229,6 +229,23 @@ class LoginHandler(BaseHandler):
                 code_flow = self.build_auth_code_flow()
                 self.memcached.add(code_flow["state"], code_flow)
                 self.redirect(code_flow["auth_uri"])
+            elif options.auth == "keycloak":
+                state = urlsafe_b64encode(urandom(24)).decode("utf-8")
+                nonce = urlsafe_b64encode(urandom(24)).decode("utf-8")
+                params = {
+                    "client_id": options.keycloak_client_id,
+                    "response_type": "code",
+                    "scope": "openid email profile",
+                    "redirect_uri": options.redirect_url,
+                    "state": state,
+                    "nonce": nonce,
+                }
+                auth_url = (
+                    options.keycloak_authorization_endpoint + "?" + urlencode(params)
+                )
+                code_flow = {"state": state, "nonce": nonce, "auth_uri": auth_url}
+                self.memcached.add(state, code_flow)
+                self.redirect(auth_url)
             else:
                 self.render("public/login.html", info=None, errors=None)
 
