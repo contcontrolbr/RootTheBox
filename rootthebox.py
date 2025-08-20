@@ -526,6 +526,9 @@ define("tenant_id", default="common", group="azuread")
 define("client_secret", default="", group="azuread")
 define("redirect_url", default="http://localhost:8888/oidc", group="azuread")
 
+# Keycloak
+define("keycloak_token_url", default="", group="keycloak")
+
 # ReCAPTCHA
 define(
     "use_recaptcha",

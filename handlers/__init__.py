@@ -86,7 +86,6 @@ def get_cookie_secret():
 urls = [
     # Public handlers - PublicHandlers.py
     (r"/login", LoginHandler),
-    (r"/oidc", CodeFlowHandler),
     (r"/about", AboutHandler),
     (r"/", HomePageHandler),
     (r"/robots(|\.txt)", FakeRobotsHandler),
@@ -213,7 +212,10 @@ if options.auth == "db":
     urls.insert(2, (r"/registration", RegistrationHandler))
 # For Azure AD authentication we have a simplified Join Team instead of registration.
 elif options.auth == "azuread":
+    urls.insert(1, (r"/oidc", CodeFlowHandler))
     urls.insert(2, (r"/jointeam", JoinTeamHandler))
+elif options.auth == "keycloak":
+    urls.insert(1, (r"/oidc", KeycloakCodeFlowHandler))
 
 # This one has to be last
 urls.append((r"/(.*)", NotFoundHandler))
