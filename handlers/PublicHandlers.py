@@ -214,6 +214,66 @@ class CodeFlowHandler(BaseHandler):
                     self.dbsession.delete(permission)
 
 
+class KeycloakCodeFlowHandler(BaseHandler):
+
+    """Handle Keycloak OIDC code flow response."""
+
+    def get(self, *args, **kwargs):
+        code = self.get_argument("code")
+        state = self.get_argument("state")
+
+        team_code = self.memcached.get(state)
+        if team_code is not None:
+            self.memcached.delete(state)
+
+        token_req = {
+            "grant_type": "authorization_code",
+            "client_id": options.client_id,
+            "client_secret": options.client_secret,
+            "code": code,
+            "redirect_uri": options.redirect_url,
+        }
+        data = urlencode(token_req).encode("utf-8")
+        request = urlrequest.Request(options.keycloak_token_url, data)
+        response = urlrequest.urlopen(request)
+        result = json.loads(response.read())
+
+        id_token = result.get("id_token")
+        if not id_token:
+            self.redirect("/403")
+            return
+
+        payload = id_token.split(".")[1]
+        padding = 4 - len(payload) % 4
+        payload += "=" * padding
+        claims = json.loads(urlsafe_b64decode(payload).decode("utf-8"))
+
+        user = User.by_uuid(claims["sub"])
+        if user is None:
+            user = User()
+            user.uuid = claims["sub"]
+            user.handle = claims.get("preferred_username", "user")
+            user.password = "".join(
+                random.choice(string.ascii_letters + string.digits + string.punctuation)
+                for _ in range(30)
+            )
+            user.bank_password = ""
+            user.name = claims.get("name", user.handle)
+            user.email = claims.get("email", "")
+            user.theme = options.default_theme
+            user.last_login = datetime.now()
+            user.logins = 1
+            if team_code:
+                team = Team.by_code(team_code)
+                if team:
+                    user.team_id = team.id
+            self.dbsession.add(user)
+
+        self.dbsession.commit()
+        CodeFlowHandler.create_login_session(self, user)
+        self.redirect("/user")
+
+
 class LoginHandler(BaseHandler):
 
     """Takes care of the login process"""
