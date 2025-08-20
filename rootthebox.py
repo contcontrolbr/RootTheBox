@@ -426,7 +426,7 @@ define(
     "auth",
     default="db",
     group="application",
-    help="The authentication mechanism, db (default) or Azure AD",
+    help="The authentication mechanism, db (default), Azure AD, or Keycloak",
 )
 
 define(
@@ -525,6 +525,17 @@ define("client_id", default="", group="azuread")
 define("tenant_id", default="common", group="azuread")
 define("client_secret", default="", group="azuread")
 define("redirect_url", default="http://localhost:8888/oidc", group="azuread")
+
+# Keycloak
+define("keycloak_server", default="", group="keycloak")
+define("keycloak_realm", default="", group="keycloak")
+define("keycloak_client_id", default="", group="keycloak")
+define("keycloak_client_secret", default="", group="keycloak")
+define(
+    "keycloak_redirect_url",
+    default="http://localhost:8888/oidc",
+    group="keycloak",
+)
 
 # ReCAPTCHA
 define(

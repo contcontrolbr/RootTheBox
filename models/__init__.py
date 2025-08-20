@@ -71,6 +71,23 @@ if options.auth == "azuread":
 else:
     azuread_app = None
 
+if options.auth == "keycloak":
+    try:
+        from keycloak import KeycloakOpenID
+
+        keycloak_client = KeycloakOpenID(
+            server_url=options.keycloak_server,
+            realm_name=options.keycloak_realm,
+            client_id=options.keycloak_client_id,
+            client_secret_key=options.keycloak_client_secret,
+            redirect_uri=options.keycloak_redirect_url,
+        )
+    except Exception as error:
+        logging.error("Keycloak client init failed: %s", error)
+        keycloak_client = None
+else:
+    keycloak_client = None
+
 ### Setup the database session
 engine = create_engine(str(db_connection), pool_pre_ping=True)
 session_maker = sessionmaker(bind=engine)
